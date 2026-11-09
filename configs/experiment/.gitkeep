@@ -1,0 +1,4 @@
+# configs/experiment/
+# What:    One YAML per experiment ID (E0, E0b, E1, E2, E3, E4, E5, E6, E7)
+# Purpose: Make the experiment matrix of the proposal executable and diffable
+# Git:     tracked   Owner: B, C

@@ -1,0 +1,4 @@
+# src/dfstr/labels/
+# What:    Vietnamese character decomposition (base, modifier, tone), đ mapping, NFC handling, syllable-validity rules for the mask
+# Purpose: Core linguistic logic; must be exactly invertible (compose(decompose(x)) == x)
+# Git:     tracked   Owner: C

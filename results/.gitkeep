@@ -1,0 +1,4 @@
+# results/
+# What:    Final numbers and predictions used in the report
+# Purpose: Separate small, committed results from large run outputs
+# Git:     tracked   Owner: A, D

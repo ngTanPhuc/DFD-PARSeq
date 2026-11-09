@@ -1,0 +1,4 @@
+# configs/charset/
+# What:    Character-set definitions (baseline 228-char set, component vocabularies for base/modifier/tone)
+# Purpose: Keep the charset an explicit, versioned input instead of hidden code
+# Git:     tracked   Owner: B, C

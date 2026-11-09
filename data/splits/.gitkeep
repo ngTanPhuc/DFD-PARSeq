@@ -1,0 +1,4 @@
+# data/splits/
+# What:    Split manifests: image IDs per train/validation/test group, near-duplicate groups, rare-combination holdout lists for E7
+# Purpose: Leakage control; small, derived files that are safe to commit (IDs only, no images, no transcripts)
+# Git:     tracked   Owner: A

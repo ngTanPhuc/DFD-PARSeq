@@ -1,0 +1,4 @@
+# data/
+# What:    All datasets and derived data
+# Purpose: Root for the data pipeline; nothing here except splits/ is committed
+# Git:     partly ignored (contents except splits/ ignored, see .gitignore)   Owner: A

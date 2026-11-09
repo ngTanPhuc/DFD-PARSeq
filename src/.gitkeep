@@ -1,0 +1,4 @@
+# src/
+# What:    Python source root (src layout)
+# Purpose: Keeps importable code separate from scripts and data
+# Git:     tracked   Owner: all

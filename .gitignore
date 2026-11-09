@@ -1,0 +1,57 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# --- Secrets / local environment ---
+.env
+.env.*
+!.env.example
+
+# --- Data ---
+# VinText terms: research/education only, no redistribution of any original or modified part.
+# Raw data, crops, and LMDB/processed data must never be committed.
+data/raw/*
+!data/raw/.gitkeep
+data/interim/*
+!data/interim/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+*.lmdb
+*.mdb
+# data/splits/ is tracked on purpose (IDs only).
+
+# --- Training outputs and weights ---
+outputs/*
+!outputs/.gitkeep
+lightning_logs/
+tb_logs/
+wandb/
+*.ckpt
+*.pt
+*.pth
+*.safetensors
+slurm-*.out
+
+# --- LaTeX build artifacts ---
+*.aux
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.log
+*.out
+*.synctex.gz
+*.toc
+
+# --- Editor / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

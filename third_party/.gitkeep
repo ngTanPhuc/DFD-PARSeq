@@ -1,0 +1,4 @@
+# third_party/
+# What:    External code kept separate from ours (PARSeq goes in third_party/parseq/)
+# Purpose: Clear boundary between reused code and our own, as the report requires
+# Git:     tracked   Owner: B

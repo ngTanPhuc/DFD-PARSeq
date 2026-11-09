@@ -1,0 +1,4 @@
+# tests/
+# What:    Unit tests (decomposition round-trip, error categorization, leakage checks, metrics)
+# Purpose: Protect the definitions the whole report depends on
+# Git:     tracked   Owner: A, C

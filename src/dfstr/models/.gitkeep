@@ -1,0 +1,4 @@
+# src/dfstr/models/
+# What:    Three-head output, factorized embeddings, loss, decoding wrappers around PARSeq
+# Purpose: The model contribution of the project
+# Git:     tracked   Owner: C

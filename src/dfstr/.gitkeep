@@ -1,0 +1,4 @@
+# src/dfstr/
+# What:    The project package (dfstr = diacritic-factorized STR)
+# Purpose: Our own code; PARSeq stays untouched in third_party/
+# Git:     tracked   Owner: all

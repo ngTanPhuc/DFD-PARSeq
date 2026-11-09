@@ -1,0 +1,4 @@
+# data/interim/
+# What:    Word crops (perspective-rectified from quadrilaterals), intermediate files, audit outputs
+# Purpose: Reproducible but regenerable data between raw and training format
+# Git:     contents ignored, see .gitignore   Owner: A

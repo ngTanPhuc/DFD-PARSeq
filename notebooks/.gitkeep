@@ -1,0 +1,4 @@
+# notebooks/
+# What:    Exploratory notebooks (data audit, error analysis)
+# Purpose: Exploration only; any logic that matters moves into src/ or scripts/
+# Git:     tracked   Owner: A, D

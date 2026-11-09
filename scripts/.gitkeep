@@ -1,0 +1,4 @@
+# scripts/
+# What:    Command-line entry points (crop generation, data audit, training, evaluation, table building)
+# Purpose: Thin wrappers around src/dfstr/; each documented in the README
+# Git:     tracked   Owner: B

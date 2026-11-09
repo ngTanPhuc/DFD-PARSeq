@@ -1,0 +1,4 @@
+# configs/
+# What:    Hydra/YAML configuration for training and evaluation
+# Purpose: Single place to define every run so any result can be reproduced from a config + seed
+# Git:     tracked   Owner: B, C

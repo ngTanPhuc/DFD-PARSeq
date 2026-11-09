@@ -1,0 +1,4 @@
+# results/predictions/
+# What:    Per-word prediction files keyed by crop ID
+# Purpose: Allow error analysis and bootstrap; must not contain ground-truth text or images
+# Git:     tracked   Owner: A

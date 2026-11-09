@@ -1,0 +1,4 @@
+# scripts/slurm/
+# What:    Slurm job scripts for the HPC/GPU cluster
+# Purpose: Run the experiment matrix with fixed seeds and logged resources
+# Git:     tracked   Owner: B

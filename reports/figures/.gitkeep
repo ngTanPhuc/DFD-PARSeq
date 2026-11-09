@@ -1,0 +1,4 @@
+# reports/figures/
+# What:    Figures used in the report (plots, qualitative examples)
+# Purpose: Generated from results/ by scripts so figures are reproducible
+# Git:     tracked   Owner: D

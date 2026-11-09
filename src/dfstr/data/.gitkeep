@@ -1,0 +1,4 @@
+# src/dfstr/data/
+# What:    Crop generation, label normalization I/O, datasets/dataloaders, split and leakage utilities
+# Purpose: Pipeline from VinText annotations to training samples
+# Git:     tracked   Owner: A

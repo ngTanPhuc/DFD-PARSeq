@@ -1,0 +1,4 @@
+# data/raw/
+# What:    Original VinText download, untouched (unzipped archive)
+# Purpose: Immutable source of truth; VinText terms forbid redistribution
+# Git:     contents ignored, see .gitignore   Owner: A

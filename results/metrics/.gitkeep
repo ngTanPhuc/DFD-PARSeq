@@ -1,0 +1,4 @@
+# results/metrics/
+# What:    Per-run and aggregated metrics tables (CSV/JSON): DER, UDER, DER on intersection, word accuracy, 1-NED, error categories, with seeds and CIs
+# Purpose: Rebuild every table of the report without retraining
+# Git:     tracked   Owner: A

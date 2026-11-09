@@ -1,0 +1,4 @@
+# outputs/
+# What:    Hydra run directories, checkpoints, TensorBoard logs, Slurm logs
+# Purpose: Everything a training run produces; large, regenerable
+# Git:     contents ignored, see .gitignore   Owner: B

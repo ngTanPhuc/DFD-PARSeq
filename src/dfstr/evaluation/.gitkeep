@@ -1,0 +1,4 @@
+# src/dfstr/evaluation/
+# What:    Metrics (DER, UDER, DER on intersection, word accuracy, 1-NED), error categorization, paired bootstrap
+# Purpose: Frozen evaluation code shared by all models
+# Git:     tracked   Owner: A
