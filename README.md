@@ -10,10 +10,10 @@ The base model is **PARSeq** (Bautista & Atienza, ECCV 2022; `baudm/parseq`, Apa
 
 | Role | Name | Responsibility |
 |---|---|---|
-| A | TODO(user) | Data and evaluation: VinText download/audit, crops, splits, leakage tests, metrics code, final test run (once). |
-| B | TODO(user) | Baseline and training infrastructure: PARSeq setup, charset/NFC changes, pilot E0, E0b, E1, E6, GPU/Slurm scheduling. |
-| C | TODO(user) | Proposed model: three-head output, loss, factorized context, syllable mask (E2, E3, E4, E5). |
-| D | TODO(user) | Generalization, analysis and report: E7 design, error analysis, related work, LNCS report, README/packaging. |
+| A | Phuc | Data and evaluation: VinText download/audit, crops, splits, leakage tests, metrics code, final test run (once). |
+| B | Tri | Baseline and training infrastructure: PARSeq setup, charset/NFC changes, pilot E0, E0b, E1, E6, GPU/Slurm scheduling. |
+| C | Qui | Proposed model: three-head output, loss, factorized context, syllable mask (E2, E3, E4, E5). |
+| D | Hien | Generalization, analysis and report: E7 design, error analysis, related work, LNCS report, README/packaging. |
 
 Compute: Kaggle/Colab.
 
@@ -69,7 +69,7 @@ Compute: Kaggle/Colab.
 
    ```bash
    git submodule add https://github.com/baudm/parseq third_party/parseq
-   git -C third_party/parseq checkout <PINNED_COMMIT>   # TODO(user): record the commit hash here
+   git -C third_party/parseq checkout <PINNED_COMMIT>   # TODO(Tri): record the commit hash here
    ```
 
    PARSeq is Apache-2.0. Anyone cloning afterwards runs `git submodule update --init`.
@@ -79,7 +79,7 @@ Compute: Kaggle/Colab.
    ```bash
    source .venv/bin/activate
    cd third_party/parseq
-   platform=<cpu|cu118|cu121|rocm5.7>      # TODO(user): choose for our GPU
+   platform=<cpu|cu118|cu121|rocm5.7>      # TODO(Tri): choose for our GPU
    make torch-${platform}
    # install into the project's virtual environment
    pip install -r requirements/core.${platform}.txt -e .[train,test]
@@ -133,7 +133,7 @@ If `gdown` hits Google Drive quota limits, download in a browser from `https://d
 - [ ] How unreadable regions are marked (commonly `###`).
 - [ ] The actual folder layout after unzip.
 
-TODO(user): paste the output of the `find` command here and update this section. The official page's folder layout description is inconsistent, so do not invent a layout.
+TODO(Phuc): paste the output of the `find` command here and update this section. The official page's folder layout description is inconsistent, so do not invent a layout.
 
 **Citation.** *Dictionary-Guided Scene Text Recognition*, Nguyen et al., CVPR 2021. https://openaccess.thecvf.com/content/CVPR2021/papers/Nguyen_Dictionary-Guided_Scene_Text_Recognition_CVPR_2021_paper.pdf
 

@@ -49,7 +49,7 @@ uv run ruff check . && uv run ruff format --check .
 ```
 
 - Python is ≥ 3.10. Torch is installed per machine; see `README.md` "Setup" and the "Pinned versions" table.
-- The GPU is `TODO(user)`. Do not assume a CUDA version or a Slurm partition.
+- Compute is **Kaggle/Colab**. Do not assume a CUDA version or a Slurm partition.
 - `pyproject.toml` sets `pythonpath = ["src"]` for pytest and excludes `third_party`, `data`, and `outputs` from Ruff.
 
 ## 5. Coding conventions
@@ -89,9 +89,11 @@ uv run ruff check . && uv run ruff format --check .
 
 | Role | Name | Responsibility |
 |---|---|---|
-| A | TODO(user) | Data and evaluation: VinText download/audit, crops, splits, leakage tests, metrics code, final test run (once). |
-| B | TODO(user) | Baseline and training infrastructure: PARSeq setup, charset/NFC changes, pilot E0, E0b, E1, E6, GPU/Slurm scheduling. |
-| C | TODO(user) | Proposed model: three-head output, loss, factorized context, syllable mask (E2, E3, E4, E5). |
-| D | TODO(user) | Generalization, analysis and report: E7 design, error analysis, related work, LNCS report, README/packaging. |
+| A | Phuc | Data and evaluation: VinText download/audit, crops, splits, leakage tests, metrics code, final test run (once). |
+| B | Tri | Baseline and training infrastructure: PARSeq setup, charset/NFC changes, pilot E0, E0b, E1, E6, GPU/Slurm scheduling. |
+| C | Qui | Proposed model: three-head output, loss, factorized context, syllable mask (E2, E3, E4, E5). |
+| D | Hien | Generalization, analysis and report: E7 design, error analysis, related work, LNCS report, README/packaging. |
 
 Cross-reading rule: A reads C, B reads A, C reads B, and D checks report numbers against prediction files.
+
+Compute: Kaggle/Colab. Do not assume a CUDA version or a Slurm partition.
