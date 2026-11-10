@@ -60,3 +60,6 @@ Thumbs.db
 AGENTS.md
 AGENT.md
 INIT.md
+
+## --- Third-party libraries ---
+third_party/parseq/*.egg-info/
