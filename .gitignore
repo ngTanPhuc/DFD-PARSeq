@@ -55,3 +55,8 @@ slurm-*.out
 .idea/
 .DS_Store
 Thumbs.db
+
+## -- AI Agents --
+AGENTS.md
+AGENT.md
+INIT.md
