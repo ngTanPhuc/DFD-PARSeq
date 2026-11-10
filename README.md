@@ -69,7 +69,7 @@ Compute: Kaggle/Colab.
 
    ```bash
    git submodule add https://github.com/baudm/parseq third_party/parseq
-   git -C third_party/parseq checkout <PINNED_COMMIT>   # TODO(Tri): record the commit hash here
+   git -C third_party/parseq checkout 1902db043c029a7e03a3818c616c06600af574be
    ```
 
    PARSeq is Apache-2.0. Anyone cloning afterwards runs `git submodule update --init`.
@@ -98,7 +98,7 @@ Compute: Kaggle/Colab.
 
 | Item | Value |
 |---|---|
-| PARSeq commit | TODO(user) |
+| PARSeq commit | 1902db043c029a7e03a3818c616c06600af574be |
 | Python | TODO(user) |
 | torch | TODO(user) |
 | CUDA | TODO(user) |
