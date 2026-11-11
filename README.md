@@ -99,10 +99,11 @@ Compute: Kaggle/Colab.
 | Item | Value |
 |---|---|
 | PARSeq commit | 1902db043c029a7e03a3818c616c06600af574be |
-| Python | TODO(user) |
-| torch | TODO(user) |
-| CUDA | TODO(user) |
-| GPU driver | TODO(user) |
+| Python | 3.12.3 |
+| torch | 2.15.0 (CPU-only execution; wheel tagged +cu132 but no GPU used) |
+| CUDA | N/A — no NVIDIA GPU on this machine, runs on CPU |
+| GPU driver | N/A |
+“values below are from Tri’s machine (CPU-only); adjust per-machine as needed
 
 ## Getting the dataset (VinText)
 
