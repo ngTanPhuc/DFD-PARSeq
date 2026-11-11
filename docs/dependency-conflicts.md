@@ -113,3 +113,25 @@ khi điền bảng "Pinned versions" và tiếp tục các bước huấn luyệ
    data/labels/evaluation code không phụ thuộc PARSeq).
 
 **Người ghi:** Tri (role B), 10/11/2026
+
+## 2026-11-11 — Kết luận: xung đột đã giải quyết, không cần hạ cấp version
+
+Quyết định của nhóm (leader): dùng hướng 2 — giữ nguyên pyproject.toml
+(torch, numpy, pillow... bản mới) làm nguồn version duy nhất, KHÔNG dùng
+`third_party/parseq/requirements/core.cpu.txt` để cài đặt (file đó chỉ
+là bản snapshot cũ PARSeq từng test qua, không phải yêu cầu bắt buộc).
+
+Cách cài đúng:
+  cd third_party/parseq
+  uv pip install -e . --no-deps   # chỉ cài code PARSeq, không đụng version khác
+  cd ../..
+  uv sync                          # đảm bảo mọi thư viện khác đúng theo pyproject.toml
+
+Đã verify: PARSeq (strhub) import và chạy inference thành công với
+torch==2.15.0 (bản mới nhất trong pyproject.toml), đọc đúng chữ demo
+"CHEWBACCA" từ demo_images/art-01107.jpg. uv run pytest và
+uv run ruff check . đều pass sạch.
+
+Trạng thái: ĐÃ GIẢI QUYẾT. Không cần sửa pyproject.toml.
+
+Người ghi: Tri (role B), 11/11/2026
