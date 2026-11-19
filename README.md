@@ -120,7 +120,6 @@ uv sync --group data
 mkdir -p data/raw
 uv run gdown 1UUQhNvzgpZy7zXBFQp0Qox-BBjunZ0ml -O data/raw/vintext_original.zip
 unzip data/raw/vintext_original.zip -d data/raw/vintext
-find data/raw/vintext -maxdepth 3 | head -50
 ```
 
 If `gdown` hits Google Drive quota limits, download in a browser from `https://drive.google.com/file/d/1UUQhNvzgpZy7zXBFQp0Qox-BBjunZ0ml/view?usp=sharing` and unzip into `data/raw/vintext/`.
