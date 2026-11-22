@@ -4,7 +4,7 @@ This repository is the codebase for the CO3133 Deep Learning and Applications (H
 
 The base model is **PARSeq** (Bautista & Atienza, ECCV 2022; `baudm/parseq`, Apache-2.0). The project idea is to replace PARSeq's single per-position softmax with **three parallel heads** (base letter, modifier/variant, tone), optionally use factorized embeddings for previous-token context, and apply a soft syllable-validity mask at decode time. The dataset is **VinText** (CVPR 2021). The main metric is **DER** (diacritic error rate), supported by **UDER**, DER on the intersection set, word accuracy, and 1-NED. The project deadline is **Sunday 13 December 2026**.
 
-**Status:** *Phase 0, not started.* The team updates this line at each phase.
+**Status:** *Data pipeline complete (audit, splits, charset, crops, LMDB stores); pilot E0 next.* The team updates this line at each phase.
 
 ## Team
 
@@ -26,8 +26,9 @@ Compute: Kaggle/Colab.
 │   └── experiment/          # One YAML per experiment ID (E0, E0b, E1-E7)
 ├── data/                    # All datasets and derived data
 │   ├── raw/                 # Original VinText download, untouched (contents ignored)
-│   ├── interim/             # Word crops, intermediate files, audit outputs (contents ignored)
-│   ├── processed/           # Training-ready data, e.g. LMDB (contents ignored)
+│   ├── interim/             # Audit outputs, crop manifest, intermediate files (contents ignored)
+│   ├── processed/           # Other training-ready data (contents ignored)
+│   ├── lmdb/                # PARSeq LMDB stores, one per split (contents ignored)
 │   └── splits/              # Split manifests, near-duplicate groups, rare-combination holdouts (tracked)
 ├── docs/                    # Proposal PDF, decision records, data-audit notes, PARSeq reuse notes
 ├── notebooks/               # Exploratory notebooks (data audit, error analysis)
@@ -174,6 +175,27 @@ uv run python scripts/make_splits.py --from_zip data/raw/vintext_original.zip \
 | validation | `test_image` | 300 | 7,201 |
 | test | `unseen_test_images` | 500 | 10,068 |
 
+**Crop generation and LMDB stores** (rules in `docs/crop-pipeline.md`):
+
+```bash
+uv run python scripts/make_crops.py --from_folder data/raw/vintext/vietnamese --dry-run  # counts only
+uv run python scripts/make_crops.py --from_folder data/raw/vintext/vietnamese            # full run
+```
+
+Each usable region becomes one perspective-rectified, upright, native-resolution crop
+(`crop_id = <image_id>_r<region:03d>`, e.g. `im0461_r003`). Crops are stored as PNG bytes in one
+PARSeq LMDB per split (`data/lmdb/{train,validation,test}`, 1-based `image-%09d` / `label-%09d`
+keys, `num-samples`), and the geometry goes to `data/interim/crops/manifest.csv`. Labels are NFC:
+train labels use the normalized tone placement, validation and test labels stay as shipped. Both
+outputs live under ignored `data/` paths; the manifest holds no transcript text. Resizing to 32x128
+or a higher input resolution happens in the DataLoader, not in the store.
+
+Measured on 22 Nov 2026: **42,981 crops** (train 25,723, validation 7,193, test 10,065), of which
+7,550 are vertical and 142 were clipped to the image border; 13,049 regions were dropped as
+unreadable and 54 failed rectification (28 repeated corners, 23 non-convex, 3 outside the image).
+The stores hold 386 / 101 / 178 MiB. Full rules, drop reasons, and the verification checks:
+`docs/crop-pipeline.md`.
+
 **Citation.** *Dictionary-Guided Scene Text Recognition*, Nguyen et al., CVPR 2021. https://openaccess.thecvf.com/content/CVPR2021/papers/Nguyen_Dictionary-Guided_Scene_Text_Recognition_CVPR_2021_paper.pdf
 
 ## Workflow by phase
@@ -181,7 +203,7 @@ uv run python scripts/make_splits.py --from_zip data/raw/vintext_original.zip \
 | Phase | Dates (2026) | Goal | Key outputs | Exit criterion |
 |---|---|---|---|---|
 | 0. Setup | 9 Nov → 10 Nov | Repo, environment, PARSeq added, data downloaded | Working `uv` env, PARSeq pinned, raw data in `data/raw/` | Everyone can run `uv run pytest` and see the raw data |
-| 1. Data audit and pipeline | 9 Nov → 14 Nov | Trustworthy data and leakage-free splits | Crops in `data/interim/`, split manifests in `data/splits/`, audit notes in `docs/`, label statistics (base/modifier/tone, length), `đ` and hòa/hoà convention chosen, near-duplicate groups (perceptual hash), LMDB in `data/processed/` | Leakage tests pass; crop count recorded; unreadable-region rule recorded |
+| 1. Data audit and pipeline | 9 Nov → 14 Nov (closed 22 Nov) | Trustworthy data and leakage-free splits | Crops and LMDB in `data/lmdb/`, split manifests in `data/splits/`, audit notes in `docs/`, label statistics (base/modifier/tone, length), `đ` and hòa/hoà convention chosen, 228-char charset. Near-duplicate hashing was **skipped by decision** (22 Nov 2026) | Image-level disjointness tested; crop counts recorded; unreadable-region rule recorded |
 | 2. Pilot and decision gate | 9 Nov → 15 Nov | Is there headroom for the idea? | Pilot E0 (PARSeq, NFC, charset 228, 128×32): time per run, validation curve; error taxonomy of E0 on validation | **Gate on 15 Nov** (see below) |
 | 3. Core experiments (P0) | 16 Nov → 22 Nov | Main comparison | E0, E0b (split-sequence baseline), E2 (three heads), 3 seeds each, metrics in `results/metrics/` | E0, E0b, E2 complete on validation with seeds; paired bootstrap prepared |
 | 4. Resolution and generalization (P1) | 23 Nov → 29 Nov | Is the gain only from resolution? Does it generalize to rare combinations? | E1 (higher resolution), E7 (hold out rare combinations; both PARSeq and proposed model, 6 runs), E3 conditional on E1 | RQ2 and RQ5 answered on validation |

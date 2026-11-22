@@ -254,26 +254,31 @@ every downstream run. Hashes of the approved files:
 
 | Item | Why it is missing | Unblocked by |
 |---|---|---|
-| Image dimensions, decode failures | images are extracted, not yet opened | Phase 2 crop step |
-| Crop heights after rectification | needs crop generation | Phase 2 |
 | Perceptual-hash near-duplicate pairs | **skipped by decision 22 Nov 2026** (Phase 1 step 11); limitation recorded in §9 | nothing — permanent until after the test run |
 | Word-type groups (with/without diacritics, English, digits) | classification rule undecided | user decision |
 | Rare `(base, modifier, tone)` combinations for E7 | rule undecided | user decision, role D |
+
+Measured since, from the crop run (counts, sizes and drop reasons in `docs/crop-pipeline.md` §6):
+all 2,000 source images opened without a decode failure, and the crop sizes after rectification are
+known per split (42,981 crops: 25,723 / 7,193 / 10,065).
 
 ## 11. Method and tests
 
 - Code: `src/dfstr/data/annotations.py` (format parsing, unusable-region rule),
   `unicode_stats.py` (audit-only Unicode helpers), `vintext_source.py` (unpacked tree or in-place
   zip), `audit.py` (report), `splits.py` (manifests), `charset.py` (charset read/write,
-  inventory, coverage).
+  inventory, coverage), `crops.py` (rectification), `crop_manifest.py`, `lmdb_store.py` (LMDB
+  layout), `training_labels.py` (stored label per split).
   Shared orthography, including `tone_normalize()`: `src/dfstr/labels/orthography.py`.
-  Entry points: `scripts/audit_dataset.py`, `scripts/make_splits.py`, `scripts/make_charset.py`.
+  Entry points: `scripts/audit_dataset.py`, `scripts/make_splits.py`, `scripts/make_charset.py`,
+  `scripts/make_crops.py`.
 - The report contains counts, rates and distributions only; a test asserts that no fixture
   transcript appears anywhere in the serialized report.
 - Tests: `tests/test_annotations.py`, `tests/test_unicode_stats.py`, `tests/test_audit.py`,
-  `tests/test_orthography.py`, `tests/test_splits.py`, `tests/test_charset.py` (81 tests,
-  synthetic hand-written fixtures only; one test reads the committed charset file), `uv run
-  pytest`.
+  `tests/test_orthography.py`, `tests/test_splits.py`, `tests/test_charset.py`,
+  `tests/test_crops.py`, `tests/test_crop_manifest.py`, `tests/test_lmdb_store.py`,
+  `tests/test_training_labels.py` (121 tests, synthetic hand-written fixtures only; one test reads
+  the committed charset file), `uv run pytest`.
 - The audit's Unicode helpers are measurement-only. `src/dfstr/labels/orthography.py` holds the
   shared tables and the tone-placement rule; the metrics module must import `tone_normalize()`
   from there instead of re-implementing it.
