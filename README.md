@@ -4,7 +4,7 @@ This repository is the codebase for the CO3133 Deep Learning and Applications (H
 
 The base model is **PARSeq** (Bautista & Atienza, ECCV 2022; `baudm/parseq`, Apache-2.0). The project idea is to replace PARSeq's single per-position softmax with **three parallel heads** (base letter, modifier/variant, tone), optionally use factorized embeddings for previous-token context, and apply a soft syllable-validity mask at decode time. The dataset is **VinText** (CVPR 2021). The main metric is **DER** (diacritic error rate), supported by **UDER**, DER on the intersection set, word accuracy, and 1-NED. The project deadline is **Sunday 13 December 2026**.
 
-**Status:** *Phase 0, not started.* The team updates this line at each phase.
+**Status:** *Data pipeline complete (audit, splits, charset, crops, LMDB stores); pilot E0 next.* The team updates this line at each phase.
 
 ## Team
 
@@ -26,8 +26,9 @@ Compute: Kaggle/Colab.
 │   └── experiment/          # One YAML per experiment ID (E0, E0b, E1-E7)
 ├── data/                    # All datasets and derived data
 │   ├── raw/                 # Original VinText download, untouched (contents ignored)
-│   ├── interim/             # Word crops, intermediate files, audit outputs (contents ignored)
-│   ├── processed/           # Training-ready data, e.g. LMDB (contents ignored)
+│   ├── interim/             # Audit outputs, crop manifest, intermediate files (contents ignored)
+│   ├── processed/           # Other training-ready data (contents ignored)
+│   ├── lmdb/                # PARSeq LMDB stores, one per split (contents ignored)
 │   └── splits/              # Split manifests, near-duplicate groups, rare-combination holdouts (tracked)
 ├── docs/                    # Proposal PDF, decision records, data-audit notes, PARSeq reuse notes
 ├── notebooks/               # Exploratory notebooks (data audit, error analysis)
@@ -120,21 +121,80 @@ uv sync --group data
 mkdir -p data/raw
 uv run gdown 1UUQhNvzgpZy7zXBFQp0Qox-BBjunZ0ml -O data/raw/vintext_original.zip
 unzip data/raw/vintext_original.zip -d data/raw/vintext
-find data/raw/vintext -maxdepth 3 | head -50
 ```
 
 If `gdown` hits Google Drive quota limits, download in a browser from `https://drive.google.com/file/d/1UUQhNvzgpZy7zXBFQp0Qox-BBjunZ0ml/view?usp=sharing` and unzip into `data/raw/vintext/`.
 
-**Expected facts to verify after download** (a checklist, not assumptions):
+**Release layout (verified 19 Nov 2026 from the archive listing, `unzip -l`):**
 
-- [ ] 2,000 images.
-- [ ] About 56,084 text instances.
-- [ ] Train and test splits exist.
-- [ ] No official validation split. If none exists, member A creates a deterministic image-level validation split of 300 images and records it in `data/splits/`.
-- [ ] How unreadable regions are marked (commonly `###`).
-- [ ] The actual folder layout after unzip.
+```
+vietnamese/
+├── train_images/          1,200 images  (im0001.jpg … im1200.jpg)
+├── test_image/              300 images  (im1201.jpg … im1500.jpg)
+├── unseen_test_images/      500 images  (im1501.jpg … im2000.jpg)
+├── labels/                2,000 files, gt_<n>.txt, one per image
+├── general_dict.txt       word list shipped with the release
+└── vn_dictionary.txt      word list shipped with the release
+```
 
-TODO(Phuc): paste the output of the `find` command here and update this section. The official page's folder layout description is inconsistent, so do not invent a layout.
+**Facts measured on this release** (aggregates only; full detail in `docs/data-audit.md`):
+
+- 2,000 images and **56,084 text regions** — the region count matches the paper.
+- Label format: `x1,y1,x2,y2,x3,y3,x4,y4,TRANSCRIPT`, UTF-8, **all labels already NFC**;
+  a transcript may itself contain commas.
+- Unreadable regions are marked `###` (12,984 regions). A few empty transcripts and other
+  all-`#` variants also exist. **All four classes are dropped** from crops, training and
+  metrics: 13,049 of 56,084 regions, leaving 43,035 usable.
+- Three image folders of 1,200 / 300 / 500 images exist. The 300-image `test_image` folder is
+  used as the **validation** split and `unseen_test_images` as the test split; the assignment is
+  recorded in `data/splits/provenance.json`.
+- Image names are zero-padded to four digits (`im0461.jpg`), label names are not
+  (`gt_461.txt`). The canonical id is the **image file stem** (`im0461`), so
+  `<folder>/<id>.jpg` is the image and `labels/gt_<int(id[2:])>.txt` is its label.
+- The label alphabet is **228 characters**, the union of the three splits (train alone has 226;
+  `ẽ` and `ỵ` appear only in validation and test). Generated into
+  `configs/charset/baseline.txt`; every label in every split is covered (0 out-of-charset).
+
+**Audit the release** (CPU only, reads the zip in place, prints aggregate statistics only):
+
+```bash
+uv run python scripts/audit_dataset.py --from_zip data/raw/vintext_original.zip \
+    --out data/interim/audit
+```
+
+**Split manifests** (image ids only; deterministic, no resampling):
+
+```bash
+uv run python scripts/make_splits.py --from_zip data/raw/vintext_original.zip \
+    --audit-report data/interim/audit/report.json
+```
+
+| Split | Release folder | Images | Usable regions |
+|---|---|---:|---:|
+| train | `train_images` | 1,200 | 25,766 |
+| validation | `test_image` | 300 | 7,201 |
+| test | `unseen_test_images` | 500 | 10,068 |
+
+**Crop generation and LMDB stores** (rules in `docs/crop-pipeline.md`):
+
+```bash
+uv run python scripts/make_crops.py --from_folder data/raw/vintext/vietnamese --dry-run  # counts only
+uv run python scripts/make_crops.py --from_folder data/raw/vintext/vietnamese            # full run
+```
+
+Each usable region becomes one perspective-rectified, upright, native-resolution crop
+(`crop_id = <image_id>_r<region:03d>`, e.g. `im0461_r003`). Crops are stored as PNG bytes in one
+PARSeq LMDB per split (`data/lmdb/{train,validation,test}`, 1-based `image-%09d` / `label-%09d`
+keys, `num-samples`), and the geometry goes to `data/interim/crops/manifest.csv`. Labels are NFC:
+train labels use the normalized tone placement, validation and test labels stay as shipped. Both
+outputs live under ignored `data/` paths; the manifest holds no transcript text. Resizing to 32x128
+or a higher input resolution happens in the DataLoader, not in the store.
+
+Measured on 22 Nov 2026: **42,981 crops** (train 25,723, validation 7,193, test 10,065), of which
+7,550 are vertical and 142 were clipped to the image border; 13,049 regions were dropped as
+unreadable and 54 failed rectification (28 repeated corners, 23 non-convex, 3 outside the image).
+The stores hold 386 / 101 / 178 MiB. Full rules, drop reasons, and the verification checks:
+`docs/crop-pipeline.md`.
 
 **Citation.** *Dictionary-Guided Scene Text Recognition*, Nguyen et al., CVPR 2021. https://openaccess.thecvf.com/content/CVPR2021/papers/Nguyen_Dictionary-Guided_Scene_Text_Recognition_CVPR_2021_paper.pdf
 
@@ -143,7 +203,7 @@ TODO(Phuc): paste the output of the `find` command here and update this section.
 | Phase | Dates (2026) | Goal | Key outputs | Exit criterion |
 |---|---|---|---|---|
 | 0. Setup | 9 Nov → 10 Nov | Repo, environment, PARSeq added, data downloaded | Working `uv` env, PARSeq pinned, raw data in `data/raw/` | Everyone can run `uv run pytest` and see the raw data |
-| 1. Data audit and pipeline | 9 Nov → 14 Nov | Trustworthy data and leakage-free splits | Crops in `data/interim/`, split manifests in `data/splits/`, audit notes in `docs/`, label statistics (base/modifier/tone, length), `đ` and hòa/hoà convention chosen, near-duplicate groups (perceptual hash), LMDB in `data/processed/` | Leakage tests pass; crop count recorded; unreadable-region rule recorded |
+| 1. Data audit and pipeline | 9 Nov → 14 Nov (closed 22 Nov) | Trustworthy data and leakage-free splits | Crops and LMDB in `data/lmdb/`, split manifests in `data/splits/`, audit notes in `docs/`, label statistics (base/modifier/tone, length), `đ` and hòa/hoà convention chosen, 228-char charset. Near-duplicate hashing was **skipped by decision** (22 Nov 2026) | Image-level disjointness tested; crop counts recorded; unreadable-region rule recorded |
 | 2. Pilot and decision gate | 9 Nov → 15 Nov | Is there headroom for the idea? | Pilot E0 (PARSeq, NFC, charset 228, 128×32): time per run, validation curve; error taxonomy of E0 on validation | **Gate on 15 Nov** (see below) |
 | 3. Core experiments (P0) | 16 Nov → 22 Nov | Main comparison | E0, E0b (split-sequence baseline), E2 (three heads), 3 seeds each, metrics in `results/metrics/` | E0, E0b, E2 complete on validation with seeds; paired bootstrap prepared |
 | 4. Resolution and generalization (P1) | 23 Nov → 29 Nov | Is the gain only from resolution? Does it generalize to rare combinations? | E1 (higher resolution), E7 (hold out rare combinations; both PARSeq and proposed model, 6 runs), E3 conditional on E1 | RQ2 and RQ5 answered on validation |
@@ -179,6 +239,13 @@ If these conditions are not met, stop and switch to the fallback topic (`TODO(us
 ## Evaluation protocol (frozen)
 
 - **Base letters** of a word: NFD, strip combining marks, map `đ` → `d`.
+- **Labels are NFC**; the release ships no NFD-mixing, so normalization changes nothing.
+- **Case-sensitive** comparisons; label case is never folded.
+- **Tone-placement normalization** (`hoà`/`khoẻ`/`thuỷ`, from `src/dfstr/labels/orthography.py`)
+  is applied to both prediction and ground truth for **DER, UDER, DER on the intersection set,
+  per-component accuracy and error categories**. Word accuracy and 1-NED stay strict, so
+  `WordAcc = BaseAcc × (1 − DER)` is not an identity; the metric tests it on strict strings only.
+- **Unusable regions** (all-`#` markers and empty transcripts) are dropped from every split.
 - Report **DER**, **UDER**, **DER on the intersection set**, word accuracy, and **1-NED**.
 - Error categories are mutually exclusive: missing tone, wrong tone, extra tone, wrong modifier, `đ`/`d` confusion, combined.
 - Apply a fixed priority order when assigning error categories.
@@ -186,6 +253,18 @@ If these conditions are not met, stop and switch to the fallback topic (`TODO(us
 - Use seeds **42, 43, 44**.
 - Select the checkpoint by **validation word accuracy**.
 - Touch the test split **once**, after the configuration is frozen.
+
+The metrics are implemented in `src/dfstr/evaluation/` and score decoded strings only. Definitions as
+implemented, the approval record for the error categories, and the prediction interface for the model
+side: `docs/evaluation-protocol.md`.
+
+Leakage check over the tracked manifests (image ids and crop geometry only, no transcript):
+
+```bash
+uv run python scripts/check_leakage.py --crops data/interim/crops/manifest.csv
+```
+
+Decisions and the measurements behind them: `docs/data-audit.md` §0.
 
 ## Reproducibility and rules
 
