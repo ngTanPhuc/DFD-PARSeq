@@ -124,16 +124,55 @@ unzip data/raw/vintext_original.zip -d data/raw/vintext
 
 If `gdown` hits Google Drive quota limits, download in a browser from `https://drive.google.com/file/d/1UUQhNvzgpZy7zXBFQp0Qox-BBjunZ0ml/view?usp=sharing` and unzip into `data/raw/vintext/`.
 
-**Expected facts to verify after download** (a checklist, not assumptions):
+**Release layout (verified 19 Nov 2026 from the archive listing, `unzip -l`):**
 
-- [ ] 2,000 images.
-- [ ] About 56,084 text instances.
-- [ ] Train and test splits exist.
-- [ ] No official validation split. If none exists, member A creates a deterministic image-level validation split of 300 images and records it in `data/splits/`.
-- [ ] How unreadable regions are marked (commonly `###`).
-- [ ] The actual folder layout after unzip.
+```
+vietnamese/
+├── train_images/          1,200 images  (im0001.jpg … im1200.jpg)
+├── test_image/              300 images  (im1201.jpg … im1500.jpg)
+├── unseen_test_images/      500 images  (im1501.jpg … im2000.jpg)
+├── labels/                2,000 files, gt_<n>.txt, one per image
+├── general_dict.txt       word list shipped with the release
+└── vn_dictionary.txt      word list shipped with the release
+```
 
-TODO(Phuc): paste the output of the `find` command here and update this section. The official page's folder layout description is inconsistent, so do not invent a layout.
+**Facts measured on this release** (aggregates only; full detail in `docs/data-audit.md`):
+
+- 2,000 images and **56,084 text regions** — the region count matches the paper.
+- Label format: `x1,y1,x2,y2,x3,y3,x4,y4,TRANSCRIPT`, UTF-8, **all labels already NFC**;
+  a transcript may itself contain commas.
+- Unreadable regions are marked `###` (12,984 regions). A few empty transcripts and other
+  all-`#` variants also exist. **All four classes are dropped** from crops, training and
+  metrics: 13,049 of 56,084 regions, leaving 43,035 usable.
+- Three image folders of 1,200 / 300 / 500 images exist. The 300-image `test_image` folder is
+  used as the **validation** split and `unseen_test_images` as the test split; the assignment is
+  recorded in `data/splits/provenance.json`.
+- Image names are zero-padded to four digits (`im0461.jpg`), label names are not
+  (`gt_461.txt`). The canonical id is the **image file stem** (`im0461`), so
+  `<folder>/<id>.jpg` is the image and `labels/gt_<int(id[2:])>.txt` is its label.
+- The label alphabet is **228 characters**, the union of the three splits (train alone has 226;
+  `ẽ` and `ỵ` appear only in validation and test). Generated into
+  `configs/charset/baseline.txt`; every label in every split is covered (0 out-of-charset).
+
+**Audit the release** (CPU only, reads the zip in place, prints aggregate statistics only):
+
+```bash
+uv run python scripts/audit_dataset.py --from_zip data/raw/vintext_original.zip \
+    --out data/interim/audit
+```
+
+**Split manifests** (image ids only; deterministic, no resampling):
+
+```bash
+uv run python scripts/make_splits.py --from_zip data/raw/vintext_original.zip \
+    --audit-report data/interim/audit/report.json
+```
+
+| Split | Release folder | Images | Usable regions |
+|---|---|---:|---:|
+| train | `train_images` | 1,200 | 25,766 |
+| validation | `test_image` | 300 | 7,201 |
+| test | `unseen_test_images` | 500 | 10,068 |
 
 **Citation.** *Dictionary-Guided Scene Text Recognition*, Nguyen et al., CVPR 2021. https://openaccess.thecvf.com/content/CVPR2021/papers/Nguyen_Dictionary-Guided_Scene_Text_Recognition_CVPR_2021_paper.pdf
 
@@ -178,6 +217,13 @@ If these conditions are not met, stop and switch to the fallback topic (`TODO(us
 ## Evaluation protocol (frozen)
 
 - **Base letters** of a word: NFD, strip combining marks, map `đ` → `d`.
+- **Labels are NFC**; the release ships no NFD-mixing, so normalization changes nothing.
+- **Case-sensitive** comparisons; label case is never folded.
+- **Tone-placement normalization** (`hoà`/`khoẻ`/`thuỷ`, from `src/dfstr/labels/orthography.py`)
+  is applied to both prediction and ground truth for **DER, UDER, DER on the intersection set,
+  per-component accuracy and error categories**. Word accuracy and 1-NED stay strict, so
+  `WordAcc = BaseAcc × (1 − DER)` is not an identity; the metric tests it on strict strings only.
+- **Unusable regions** (all-`#` markers and empty transcripts) are dropped from every split.
 - Report **DER**, **UDER**, **DER on the intersection set**, word accuracy, and **1-NED**.
 - Error categories are mutually exclusive: missing tone, wrong tone, extra tone, wrong modifier, `đ`/`d` confusion, combined.
 - Apply a fixed priority order when assigning error categories.
@@ -185,6 +231,8 @@ If these conditions are not met, stop and switch to the fallback topic (`TODO(us
 - Use seeds **42, 43, 44**.
 - Select the checkpoint by **validation word accuracy**.
 - Touch the test split **once**, after the configuration is frozen.
+
+Decisions and the measurements behind them: `docs/data-audit.md` §0.
 
 ## Reproducibility and rules
 

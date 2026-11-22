@@ -1,0 +1,28 @@
+{
+  "audit_report": "data/interim/audit/report.json",
+  "audit_report_sha256": "30d959ca926116acf621f31310380acac50a3564aea4e434e69ff8c2734cb040",
+  "created": "2026-11-22",
+  "drop_rule": "drop regions whose transcript is empty or consists only of '#' (unreadable markers)",
+  "rule": "official folder assignment (train=train_images, validation=test_image, test=unseen_test_images); no reshuffle, no random sampling, all crops of an image stay in that image's split",
+  "source_archive": "data/raw/vintext/vietnamese",
+  "splits": {
+    "test": {
+      "folder": "unseen_test_images",
+      "images": 500,
+      "regions_dropped": 2185,
+      "regions_usable": 10068
+    },
+    "train": {
+      "folder": "train_images",
+      "images": 1200,
+      "regions_dropped": 9328,
+      "regions_usable": 25766
+    },
+    "validation": {
+      "folder": "test_image",
+      "images": 300,
+      "regions_dropped": 1536,
+      "regions_usable": 7201
+    }
+  }
+}
