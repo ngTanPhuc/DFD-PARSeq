@@ -254,6 +254,16 @@ If these conditions are not met, stop and switch to the fallback topic (`TODO(us
 - Select the checkpoint by **validation word accuracy**.
 - Touch the test split **once**, after the configuration is frozen.
 
+The metrics are implemented in `src/dfstr/evaluation/` and score decoded strings only. Definitions as
+implemented, the approval record for the error categories, and the prediction interface for the model
+side: `docs/evaluation-protocol.md`.
+
+Leakage check over the tracked manifests (image ids and crop geometry only, no transcript):
+
+```bash
+uv run python scripts/check_leakage.py --crops data/interim/crops/manifest.csv
+```
+
 Decisions and the measurements behind them: `docs/data-audit.md` §0.
 
 ## Reproducibility and rules
